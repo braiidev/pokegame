@@ -55,7 +55,16 @@ function toast(m) {
     t.classList.remove("show");
   }, 2600);
 }
-
+function showLoader(t) {
+  var e = $("#loadTxt");
+  if (e) e.textContent = t || "CARGANDO…";
+  var o = $("#ovLoad");
+  if (o) o.classList.add("show");
+}
+function hideLoader() {
+  var o = $("#ovLoad");
+  if (o) o.classList.remove("show");
+}
 // ===== DEV =====
 let devOn = lsGet("pk_dev", "0") === "1";
 function dlog(m, cls) {

@@ -136,6 +136,7 @@ $("#infNextBtn").onclick = function () {
   infNext();
 };
 $("#infTeamBtn").onclick = function () {
+  $("#ovInf").classList.remove("show");
   openTeam();
 };
 $("#infEnergyBtn").onclick = function () {
@@ -257,6 +258,30 @@ updateHud();
     setTimeout(function () {
       b.style.display = "none";
     }, 2000);
+  }
+})();
+// ===== FIXES =====
+// Cerrar la ficha Pokédex tocando fuera de la tarjeta
+$("#ovDexMon").onclick = function (e) {
+  if (e.target === this) this.classList.remove("show");
+};
+// Botón SALIR en el campamento (vuelve a las tarjetas)
+(function () {
+  var hg = document.querySelector(".hub-grid");
+  if (hg && !document.getElementById("cbExit")) {
+    var b = document.createElement("button");
+    b.id = "cbExit";
+    b.type = "button";
+    b.className = "hbtn";
+    b.style.background = "#ffd6d0";
+    b.innerHTML =
+      '<span class="t">🚪 SALIR</span><span class="d">Volver a las tarjetas</span>';
+    b.onclick = function () {
+      save();
+      renderSlots();
+      show("scrSlots");
+    };
+    hg.appendChild(b);
   }
 })();
 // == FIN ui.js ==
