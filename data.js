@@ -1,10 +1,18 @@
-// ============================================================
-// data.js — POKÉDESAFÍO v2.1
-// Datos puros: tipos, efectividades, movimientos, evoluciones,
-// biomas, zonas, jefe y prólogo. Sin lógica de juego.
-// ============================================================
+/* ============================================================
+   data.js — POKÉDESAFÍO v3.0
+   Datos y funciones puras. Sin estado de juego.
+   Lo usan: core.js y ui.js
+   ============================================================ */
+"use strict";
 
-// ---- Nombres y colores de tipos ----
+/* ===== CONSTANTES GLOBALES ===== */
+const STAT_CAP = 100; // máximo de puntos por stat
+const CD_MAX = 4; // cargas máximas de un ataque especial
+const CD_RATE = 2 * 60 * 1000; // 1 carga cada 2 min
+const RATE = 5 * 60 * 1000; // 1 energía cada 5 min
+const ENERGY_MAX_BASE = 10; // tope absoluto de energía (NUNCA más de 10)
+
+/* ===== TIPOS ===== */
 const TYPE_ES = {
   normal: "Normal",
   fire: "Fuego",
@@ -46,7 +54,7 @@ const TYPE_COL = {
   fairy: "#D685AD",
 };
 
-// ---- Movimientos por tipo: b = básico (físico, ∞), s = especial (cargas) ----
+/* ===== MOVIMIENTOS POR TIPO (b=básico físico, s=especial) ===== */
 const MOVES = {
   normal: { b: ["Golpe Cuerpo", 55], s: ["Hiperrayo", 90] },
   fire: { b: ["Ascuas", 50], s: ["Lanzallamas", 90] },
@@ -68,7 +76,7 @@ const MOVES = {
   fairy: { b: ["Viento Feérico", 50], s: ["Fuerza Lunar", 90] },
 };
 
-// ---- Tabla de efectividades (atacante → defensor) ----
+/* ===== TABLA DE EFECTIVIDAD ===== */
 const CHART = {
   normal: { rock: 0.5, ghost: 0, steel: 0.5 },
   fire: {
@@ -196,7 +204,7 @@ const CHART = {
   },
 };
 
-// ---- Estados que puede aplicar un movimiento especial, según su tipo ----
+/* ===== ESTADOS QUE CAUSA CADA TIPO (solo ataques especiales) ===== */
 const TYPE2STATUS = {
   electric: "paralyze",
   flying: "paralyze",
@@ -212,22 +220,12 @@ const STATUS_META = {
   sleep: { i: "💤", t: "DOR" },
 };
 
-// ---- URL de sprites (la que faltaba) ----
-const sprUrl = function (id) {
-  return (
-    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" +
-    id +
-    ".png"
-  );
-};
+/* ===== SPRITES ===== */
+const sprUrl = (id) =>
+  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+const API_BASE = "https://pokeapi.co/api/v2/pokemon/";
 
-// ---- Constantes de balance ----
-const STAT_CAP = 100; // máximo de puntos por stat
-const CD_RATE = 2 * 60 * 1000; // 1 carga de enfriamiento cada 2 min
-const CD_MAX = 4; // cargas máximas de un ataque especial
-const MT_PRICE = { fis: 300, esp: 500 }; // precio de aprender un ataque (taller)
-
-// ---- Evoluciones por nivel (Gen 1) ----
+/* ===== EVOLUCIONES POR NIVEL ===== */
 const EVOS = {
   1: { to: 2, lvl: 16 },
   2: { to: 3, lvl: 32 },
@@ -281,7 +279,7 @@ const EVOS = {
   148: { to: 149, lvl: 55 },
 };
 
-// ---- Piedras evolutivas: especie → evolución ----
+/* ===== PIEDRAS EVOLUTIVAS ===== */
 const STONE_MOVES = {
   fuego: [
     [37, 38],
@@ -317,33 +315,13 @@ const STONE_INFO = {
   hoja: ["🍃", "Piedra Hoja", 300],
   lunar: ["🌙", "Piedra Lunar", 300],
 };
-const TRADE_LOCKED = [64, 67, 75, 93]; // evolucionan por intercambio (bloqueado por ahora)
 
-// ---- Helpers de datos ----
-function stoneNeededFor(sp) {
-  for (const k in STONE_MOVES) {
-    for (let i = 0; i < STONE_MOVES[k].length; i++) {
-      if (STONE_MOVES[k][i][0] === sp) return k;
-    }
-  }
-  return null;
-}
-function evoHint(m) {
-  const e = EVOS[m.species];
-  if (e) return "🥚→Nv" + e.lvl;
-  const sk = stoneNeededFor(m.species);
-  if (sk) return "🪨 " + STONE_INFO[sk][1];
-  if (TRADE_LOCKED.indexOf(m.species) !== -1) return "🔒 evol. especial";
-  return "";
-}
-
-// ---- Biomas de exploración ----
+/* ===== BIOMAS DE EXPLORACIÓN ===== */
 const BIOMES = [
   {
     id: "forest",
     name: "Bosque Verde",
     icon: "🌳",
-    d: "El clásico bosque del inicio. Pokémon amigables.",
     pool: [10, 13, 16, 25, 43, 69],
     minBadge: 0,
   },
@@ -351,7 +329,6 @@ const BIOMES = [
     id: "prairie",
     name: "Pradera Ámbar",
     icon: "🌾",
-    d: "Pastos altos y sorpresas. ¡Eevee merodea por aquí!",
     pool: [19, 23, 37, 58, 63, 66, 77, 133],
     minBadge: 0,
   },
@@ -359,7 +336,6 @@ const BIOMES = [
     id: "coast",
     name: "Costa Marea",
     icon: "🌊",
-    d: "Arena, olas y Pokémon de agua.",
     pool: [7, 54, 60, 72, 86, 90, 98, 120],
     minBadge: 1,
   },
@@ -367,7 +343,6 @@ const BIOMES = [
     id: "mountain",
     name: "Montaña Cuarzo",
     icon: "⛰️",
-    d: "Rocas duras y tipos lucha.",
     pool: [41, 50, 56, 66, 74, 75, 81, 95],
     minBadge: 2,
   },
@@ -375,530 +350,103 @@ const BIOMES = [
     id: "cave",
     name: "Cueva Penumbra",
     icon: "🕳️",
-    d: "Oscura y misteriosa. Pokémon fantasma.",
     pool: [41, 46, 50, 92, 93],
     minBadge: 3,
   },
 ];
 
-// ---- Zonas de aventura (mapa + gimnasios) ----
+/* ===== ZONAS DEL MAPA (con gimnasios) ===== */
 const ZONES = [
   {
     name: "Bosque Cuarzo",
     icon: "🌲",
-    bg: "linear-gradient(#9fd8a0,#4d9e56)",
-    badge: { n: "Medalla Cuarzo", i: "🪨" },
-    nodes: [
-      {
-        id: "n0",
-        x: 8,
-        y: 68,
-        type: "story",
-        icon: "🚪",
-        label: "Entrada del bosque",
-        dialog: [
-          {
-            who: "GUÍA",
-            txt: "El Bosque Cuarzo está inquieto desde que la Team Umbra robó el fragmento de luz…",
-          },
-          {
-            who: "GUÍA",
-            txt: "¡Cuidado con los Pokémon salvajes! Debilítalos y lanza Pokeballs si quieres capturarlos.",
-          },
-        ],
-      },
-      {
-        id: "n1",
-        x: 28,
-        y: 38,
-        type: "wild",
-        icon: "🌑",
-        label: "Sendero Umbrío (fuertes)",
-      },
-      {
-        id: "n2",
-        x: 28,
-        y: 84,
-        type: "wild",
-        icon: "🌼",
-        label: "Sendero Claro (tranquilo)",
-      },
-      {
-        id: "n3",
-        x: 48,
-        y: 60,
-        type: "choice",
-        icon: "🌉",
-        label: "Puente Viejo",
-        dialog: [
-          {
-            who: "RECLUTA UMBRA",
-            txt: "¡Alto ahí! Este puente es territorio de la Team Umbra. ¡El fragmento de luz es nuestro!",
-          },
-          { who: "RECLUTA UMBRA", txt: "¿Qué harás, pequeño entrenador?" },
-        ],
-        choices: [
-          { label: "⚔️ ¡Batalla!", effect: "battle" },
-          { label: "🪙 Sobornar (100 monedas)", effect: "bribe" },
-        ],
-      },
-      {
-        id: "n4",
-        x: 64,
-        y: 34,
-        type: "wild",
-        icon: "🍃",
-        label: "Claro de Hierbas",
-      },
-      {
-        id: "n5",
-        x: 76,
-        y: 66,
-        type: "spring",
-        icon: "⛲",
-        label: "Fuente del Bosque",
-      },
-      {
-        id: "n6",
-        x: 90,
-        y: 44,
-        type: "gym",
-        icon: "🏟️",
-        label: "GIMNASIO de Petra",
-      },
-    ],
-    edges: [
-      ["n0", "n1"],
-      ["n0", "n2"],
-      ["n1", "n3"],
-      ["n2", "n3"],
-      ["n3", "n4"],
-      ["n4", "n5"],
-      ["n5", "n6"],
-    ],
+    badge: "Medalla Cuarzo",
     pool: [10, 13, 16, 25, 43, 69],
-    trainer: {
-      name: "Recluta Umbra",
-      icon: "🕶️",
-      team: [
-        { id: 19, off: 0 },
-        { id: 41, off: 1 },
-      ],
-      floor: 5,
-    },
     gym: {
       name: "Líder Petra",
       team: [
-        { id: 74, off: 0 },
-        { id: 95, off: 2 },
+        { id: 74, lvl: 8 },
+        { id: 95, lvl: 10 },
       ],
-      floor: 6,
     },
+    nodes: 7,
   },
   {
     name: "Costa Marea",
     icon: "🌊",
-    bg: "linear-gradient(#9fd4f5,#3d84c6)",
-    badge: { n: "Medalla Marea", i: "🌊" },
-    nodes: [
-      {
-        id: "m0",
-        x: 8,
-        y: 60,
-        type: "story",
-        icon: "🏖️",
-        label: "Playa Inicial",
-        dialog: [
-          {
-            who: "GUÍA",
-            txt: "La Costa Marea huele a sal… y a problemas. La Umbra también estuvo por aquí.",
-          },
-          {
-            who: "GUÍA",
-            txt: "El Líder Nereo entrena en la marea alta. ¡Andá con cuidado!",
-          },
-        ],
-      },
-      {
-        id: "m1",
-        x: 28,
-        y: 30,
-        type: "trainer",
-        icon: "⚠️",
-        label: "Acantilados (peligro)",
-      },
-      {
-        id: "m2",
-        x: 28,
-        y: 82,
-        type: "wild",
-        icon: "🐚",
-        label: "Orilla Tranquila",
-      },
-      {
-        id: "m3",
-        x: 46,
-        y: 56,
-        type: "story",
-        icon: "🎣",
-        label: "Pescador Paco",
-        dialog: [
-          {
-            who: "PACO",
-            txt: "¡Bah! Los peces no pican desde que el faro se apagó…",
-          },
-          {
-            who: "PACO",
-            txt: "Tomá, te regalo una Pokeball. ¡Atrapá algo lindo por mí!",
-          },
-        ],
-        gift: { ball: 1 },
-      },
-      {
-        id: "m4",
-        x: 62,
-        y: 76,
-        type: "wild",
-        icon: "🌊",
-        label: "Bancos de Coral",
-      },
-      {
-        id: "m5",
-        x: 74,
-        y: 38,
-        type: "choice",
-        icon: "🕳️",
-        label: "Gruta Sospechosa",
-        dialog: [
-          { who: "???", txt: "Jeje… otro niño perdido buscando medallas…" },
-          { who: "RECLUTA UMBRA", txt: "¡La Umbra no perdona!" },
-        ],
-        choices: [
-          { label: "⚔️ ¡Enfrentarlos!", effect: "battle" },
-          { label: "🏃 Pasar de puntillas (50% de suerte)", effect: "sneak" },
-        ],
-      },
-      {
-        id: "m6",
-        x: 90,
-        y: 60,
-        type: "gym",
-        icon: "🏟️",
-        label: "GIMNASIO de Nereo",
-      },
-    ],
-    edges: [
-      ["m0", "m1"],
-      ["m0", "m2"],
-      ["m1", "m3"],
-      ["m2", "m3"],
-      ["m3", "m4"],
-      ["m4", "m5"],
-      ["m5", "m6"],
-    ],
+    badge: "Medalla Marea",
     pool: [54, 60, 72, 86, 90, 98, 120],
-    trainer: {
-      name: "Explorador Umbra",
-      icon: "🕶️",
-      team: [
-        { id: 21, off: 0 },
-        { id: 72, off: 1 },
-      ],
-      floor: 8,
-    },
     gym: {
       name: "Líder Nereo",
       team: [
-        { id: 120, off: 0 },
-        { id: 73, off: 2 },
+        { id: 120, lvl: 11 },
+        { id: 73, lvl: 13 },
       ],
-      floor: 9,
     },
+    nodes: 7,
   },
   {
     name: "Pico Voltio",
     icon: "🌩️",
-    bg: "linear-gradient(#cfd8e8,#8a93b8)",
-    badge: { n: "Medalla Voltio", i: "⚡" },
-    nodes: [
-      {
-        id: "v0",
-        x: 8,
-        y: 62,
-        type: "story",
-        icon: "🌬️",
-        label: "Base del Pico",
-        dialog: [
-          {
-            who: "GUÍA",
-            txt: "El viento aquí huele a ozono… Rai entrena entre relámpagos.",
-          },
-          {
-            who: "GUÍA",
-            txt: "Los Pokémon eléctricos son veloces: ¡cuidá tu velocidad!",
-          },
-        ],
-      },
-      {
-        id: "v1",
-        x: 28,
-        y: 36,
-        type: "wild",
-        icon: "💨",
-        label: "Ladera Ventosa",
-      },
-      {
-        id: "v2",
-        x: 28,
-        y: 84,
-        type: "choice",
-        icon: "📡",
-        label: "Torre de Antenas",
-        dialog: [
-          {
-            who: "CAZADOR UMBRA",
-            txt: "¡Estas antenas amplifican nuestra señal! ¡Ni un paso más!",
-          },
-        ],
-        choices: [
-          { label: "⚔️ ¡Batalla!", effect: "battle" },
-          { label: "🪙 Sobornar (100 monedas)", effect: "bribe" },
-        ],
-      },
-      {
-        id: "v3",
-        x: 52,
-        y: 56,
-        type: "wild",
-        icon: "⚡",
-        label: "Cumbres Eléctricas",
-      },
-      {
-        id: "v4",
-        x: 72,
-        y: 78,
-        type: "spring",
-        icon: "⛲",
-        label: "Manantial del Trueno",
-      },
-      {
-        id: "v5",
-        x: 90,
-        y: 42,
-        type: "gym",
-        icon: "🏟️",
-        label: "GIMNASIO de Rai",
-      },
-    ],
-    edges: [
-      ["v0", "v1"],
-      ["v0", "v2"],
-      ["v1", "v3"],
-      ["v2", "v3"],
-      ["v3", "v4"],
-      ["v4", "v5"],
-    ],
+    badge: "Medalla Voltio",
     pool: [81, 100, 25, 77, 27, 111],
-    trainer: {
-      name: "Cazador Umbra",
-      icon: "🕶️",
-      team: [
-        { id: 41, off: 0 },
-        { id: 52, off: 1 },
-      ],
-      floor: 13,
-    },
     gym: {
       name: "Líder Rai",
       team: [
-        { id: 81, off: 0 },
-        { id: 25, off: 1 },
-        { id: 125, off: 2 },
+        { id: 81, lvl: 14 },
+        { id: 25, lvl: 15 },
+        { id: 125, lvl: 16 },
       ],
-      floor: 14,
     },
+    nodes: 6,
   },
   {
     name: "Monte Penumbra",
     icon: "🌫️",
-    bg: "linear-gradient(#6d5a8f,#3b3155)",
-    badge: { n: "Medalla Penumbra", i: "👻" },
-    nodes: [
-      {
-        id: "p0",
-        x: 8,
-        y: 58,
-        type: "story",
-        icon: "🌁",
-        label: "Pie del Monte",
-        dialog: [
-          {
-            who: "GUÍA",
-            txt: "La niebla del Monte Penumbra esconde fantasmas… y a la Umbra.",
-          },
-          {
-            who: "GUÍA",
-            txt: "Ébano, la líder, solo respeta a quien no tiembla en la oscuridad.",
-          },
-        ],
-      },
-      {
-        id: "p1",
-        x: 26,
-        y: 32,
-        type: "wild",
-        icon: "🌫️",
-        label: "Bosque de Niebla",
-      },
-      {
-        id: "p2",
-        x: 26,
-        y: 82,
-        type: "trainer",
-        icon: "🌑",
-        label: "Sombra Umbra",
-      },
-      {
-        id: "p3",
-        x: 50,
-        y: 56,
-        type: "choice",
-        icon: "🏮",
-        label: "Cementerio de Faroles",
-        dialog: [
-          {
-            who: "SOMBRA UMBRA",
-            txt: "Los faroles se apagaron solos… ¿o fuimos nosotros? Jeje…",
-          },
-        ],
-        choices: [
-          { label: "⚔️ ¡Enfrentarlos!", effect: "battle" },
-          { label: "🏃 Pasar de puntillas (50% de suerte)", effect: "sneak" },
-        ],
-      },
-      {
-        id: "p4",
-        x: 68,
-        y: 30,
-        type: "wild",
-        icon: "🕯️",
-        label: "Sendero de Ánimas",
-      },
-      {
-        id: "p5",
-        x: 74,
-        y: 76,
-        type: "spring",
-        icon: "⛲",
-        label: "Fuente Espectral",
-      },
-      {
-        id: "p6",
-        x: 90,
-        y: 50,
-        type: "gym",
-        icon: "🏟️",
-        label: "GIMNASIO de Ébano",
-      },
-    ],
-    edges: [
-      ["p0", "p1"],
-      ["p0", "p2"],
-      ["p1", "p3"],
-      ["p2", "p3"],
-      ["p3", "p4"],
-      ["p3", "p5"],
-      ["p4", "p6"],
-      ["p5", "p6"],
-    ],
+    badge: "Medalla Penumbra",
     pool: [92, 41, 48, 88, 104, 46],
-    trainer: {
-      name: "Sombra Umbra",
-      icon: "🕶️",
-      team: [
-        { id: 92, off: 0 },
-        { id: 88, off: 1 },
-      ],
-      floor: 16,
-    },
     gym: {
       name: "Líder Ébano",
       team: [
-        { id: 92, off: 0 },
-        { id: 93, off: 1 },
-        { id: 42, off: 2 },
+        { id: 92, lvl: 17 },
+        { id: 93, lvl: 18 },
+        { id: 42, lvl: 18 },
       ],
-      floor: 17,
     },
-  },
-  {
-    name: "Faro de Cristal",
-    icon: "🗼",
-    bg: "linear-gradient(#23234a,#6a4f9e)",
-    badge: null,
-    boss: true,
-    nodes: [
-      {
-        id: "f0",
-        x: 12,
-        y: 60,
-        type: "story",
-        icon: "🌊",
-        label: "Base del Faro",
-        dialog: [
-          {
-            who: "PROF. ÁLAMO",
-            txt: "¡Lo lograste, campeón! Las 4 medallas abren el Faro de Cristal.",
-          },
-          {
-            who: "PROF. ÁLAMO",
-            txt: "El General Nox está arriba con el Zapdos corrompido… ¡liberalo y salvá la región!",
-          },
-        ],
-      },
-      {
-        id: "f1",
-        x: 84,
-        y: 42,
-        type: "boss",
-        icon: "🗼",
-        label: "EL FARO DE CRISTAL",
-      },
-    ],
-    edges: [["f0", "f1"]],
-    pool: [41, 92, 81],
+    nodes: 7,
   },
 ];
 
-// ---- Jefe final ----
-const BOSS = {
-  name: "General Nox",
-  icon: "🕶️",
-  team: [
-    { id: 42, off: 0 },
-    { id: 93, off: 1 },
-    { id: 145, off: 3 },
-  ],
-  floor: 20,
-};
-
-// ---- Prólogo ----
-const PROLOGUE = [
-  {
-    who: "PROF. ÁLAMO",
-    txt: "¡Bienvenido a la Región Ámbar, joven entrenador! Soy el Profesor Álamo.",
-  },
-  {
-    who: "PROF. ÁLAMO",
-    txt: "Una desgracia: ¡el FARO DE CRISTAL se apagó! La Team Umbra robó sus 4 fragmentos de luz.",
-  },
-  {
-    who: "PROF. ÁLAMO",
-    txt: "Sin el faro, los Pokémon andan nerviosos. Necesito a alguien valiente… ¡y ese sos vos!",
-  },
-  {
-    who: "PROF. ÁLAMO",
-    txt: "Recuperá los fragmentos venciendo a los líderes que la Umbra corrompió. ¡Tomá esto para empezar!",
-  },
-];
-// == FIN data.js ==
+/* ===== FUNCIONES PURAS (cálculos basados en datos) ===== */
+/* Stat según stat base, nivel y si es HP */
+const statOf = (base, lvl, isHp) =>
+  Math.floor((base * 2 * lvl) / 100) + (isHp ? lvl + 10 : 5);
+/* XP necesaria para subir de nivel */
+const xpNeed = (lvl) => 20 + lvl * 15;
+/* XP que da un enemigo derrotado */
+const xpGive = (kind, lvl) => (kind === "wild" ? 12 + lvl * 4 : 25 + lvl * 6);
+/* Multiplicador de efectividad de un tipo contra los tipos defensores */
+function effectiveness(t, defs) {
+  let m = 1;
+  for (const d of defs) {
+    const r = CHART[t];
+    if (r && r[d] !== undefined) m *= r[d];
+  }
+  return m;
+}
+/* Chip HTML de un tipo */
+const chip = (t) =>
+  `<b class="tchip" style="background:${TYPE_COL[t]}">${TYPE_ES[t]}</b>`;
+/* Velocidad efectiva (parálisis reduce a la mitad) */
+const effSpe = (f) =>
+  f.spe * (f.status && f.status.type === "paralyze" ? 0.5 : 1);
+/* Escapa HTML para evitar inyección */
+const esc = (s) =>
+  String(s).replace(
+    /[<>&"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c],
+  );
+/* Utilidades básicas compartidas */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const $ = (s) => document.querySelector(s);

@@ -2,8 +2,11 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POKÉDESAFÍO v2.1 — Región Ámbar</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>POKÉDESAFÍO v3.0 — Región Ámbar</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800;900&display=swap"
       rel="stylesheet"
@@ -43,7 +46,7 @@
                 "⛔ No arrancó. " +
                 (window.__pokeErrors.length
                   ? "Errores: " + window.__pokeErrors.join(" | ").slice(0, 350)
-                  : "¿Subiste los 5 archivos a GitHub Pages?");
+                  : "¿Están los 5 archivos en la misma carpeta?");
             }
           }
         }, 900);
@@ -51,619 +54,200 @@
     </script>
   </head>
   <body>
-    <div
-      id="bootErr"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: #d32f2f;
-        color: #fff;
-        font-weight: 900;
-        padding: 12px;
-        z-index: 999;
-        font-size: 13px;
-        line-height: 1.4;
-      "
-    ></div>
+    <div id="bootErr"></div>
     <div id="app">
-      <header>
-        <div class="hud-logo">
-          POKÉ<b>DESAFÍO</b>
-          <span style="font-size: 7px; opacity: 0.7">v2.1</span>
-        </div>
-        <div class="hud-chips">
-          <span id="hudAdv" style="display: none; gap: 6px; flex-wrap: wrap">
-            <div class="chip">
-              <small>DÍA</small><span id="hudDay">📅1</span>
-            </div>
-            <div class="chip energy">
-              <small>ENERGÍA</small><span id="hudEnergy">⚡5/10</span>
-            </div>
-            <div class="chip coins">
-              <small>POKÉCOINS</small><span id="hudCoins">🪙0</span>
-            </div>
-            <div class="chip">
-              <small>MEDALLAS</small><span id="hudBadges">🏅0/4</span>
-            </div>
-            <div class="chip inf" id="hudInfChip" style="display: none">
-              <small>INFINITO</small><span id="hudInf">—</span>
-            </div>
-          </span>
-          <button class="hbtn-sq" id="btnMute" type="button">🔊</button>
-          <button class="hbtn-sq" id="btnDev" type="button">🐛</button>
-        </div>
-      </header>
-      <section id="scrTitle" class="screen active">
-        <div
-          style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap"
-        >
-          <div class="ball"></div>
-          <h1 class="logo">POKÉ<em>DESAFÍO</em></h1>
-        </div>
-        <div class="tagline">
-          🗺️ Región Ámbar · El Faro de Cristal se ha apagado… ¡la Team Umbra
-          tiene la culpa!
-        </div>
-        <div class="mode-grid">
-          <div class="mode-card" id="mcAdv">
-            <div class="ico">🎴</div>
-            <h3 class="px">ENTRAR</h3>
-            <p>
-              Elegí tu tarjeta de entrenador. Dentro: 🗺️ Aventura (medallas) y
-              ⚔️ Desafío Infinito (leveo con tu equipo).
-            </p>
-          </div>
-        </div>
-        <p class="credit">Datos y sprites: PokéAPI · Gen 1</p>
-      </section>
-      <section id="scrSlots" class="screen">
-        <p class="picktitle">▸ ELIGE TU TARJETA DE ENTRENADOR</p>
-        <div class="slot-grid" id="slotGrid"></div>
-        <button class="btn-big" id="slotsBack" type="button">◂ VOLVER</button>
-      </section>
-      <section id="scrAStart" class="screen">
-        <div class="name-row">
-          <label class="px small">TU NOMBRE:</label
-          ><input
-            id="nameInput"
-            maxlength="12"
-            placeholder="ENTRENADOR"
-            autocomplete="off"
-          />
-        </div>
-        <p class="picktitle">▸ ELIGE TU POKÉMON INICIAL</p>
-        <div class="cards" id="starterRow"></div>
-        <button class="btn-big" id="arcBack" type="button">◂ VOLVER</button>
-      </section>
-      <section id="scrCamp" class="screen">
-        <p class="picktitle">▸ 🏕️ CAMPAMENTO BASE</p>
-        <div class="panel">
-          <div class="camp-top">
-            <img id="campArt" alt="" />
-            <div class="camp-info">
-              <div class="camp-name" id="campName">—</div>
-              <div
-                id="campBadges"
-                style="font-size: 19px; letter-spacing: 5px"
-              ></div>
-              <div class="camp-stats" id="campStats">—</div>
-              <div class="camp-chips" id="campChips"></div>
-            </div>
-          </div>
-          <div class="camp-msg" id="campMsg"></div>
-          <div class="hub-grid">
-            <button class="hbtn primary" id="cbMap" type="button">
-              <span class="t">🗺️ COMENZAR AVENTURA</span
-              ><span class="d">Historia y medallas · 1⚡ por tramo</span>
-            </button>
-            <button class="hbtn inf" id="cbInf" type="button">
-              <span class="t">⚔️ DESAFÍO INFINITO</span
-              ><span class="d" id="cbInfD">Leveá sin límite</span>
-            </button>
-            <button class="hbtn" id="cbExplore" type="button">
-              <span class="t">🌍 EXPLORAR</span
-              ><span class="d">Biomas salvajes · 1⚡</span>
-            </button>
-            <button class="hbtn rest" id="cbRest" type="button">
-              <span class="t">💤 DESCANSAR</span
-              ><span class="d">Nuevo día: ⚡full +50% PS · Umbra +1</span>
-            </button>
-            <button class="hbtn heal" id="cbCenter" type="button">
-              <span class="t">🏥 CENTRO POKÉMON</span
-              ><span class="d">0.5🪙 por 1% PS</span>
-            </button>
-            <button class="hbtn lab" id="cbLab" type="button">
-              <span class="t">🧪 LABORATORIO</span
-              ><span class="d">Dona · encargos ×2</span>
-            </button>
-            <button class="hbtn" id="cbShop" type="button">
-              <span class="t">🛒 TIENDA</span
-              ><span class="d">Objetos, piedras, ⚡</span>
-            </button>
-            <button class="hbtn" id="cbTeam" type="button">
-              <span class="t">👥 EQUIPO</span
-              ><span class="d" id="cbTeamD">Equipo y depósito</span>
-            </button>
-            <button class="hbtn" id="cbDex" type="button">
-              <span class="t">📕 POKÉDEX</span
-              ><span class="d" id="cbDexD">0/151</span>
-            </button>
-          </div>
-        </div>
-      </section>
-      <section id="scrMap" class="screen">
-        <p class="picktitle">▸ 🗺️ MAPA DE LA REGIÓN ÁMBAR</p>
-        <div class="map-tabs" id="mapTabs"></div>
-        <div id="mapBox">
-          <svg id="mapSvg"></svg>
-          <div id="mapNodes"></div>
-        </div>
-        <div id="mapOpts"></div>
-        <button class="btn-big" id="mapBack" type="button">◂ CAMPAMENTO</button>
-      </section>
-      <section id="scrExplore" class="screen">
-        <p class="picktitle">
-          ▸ 🌍 EXPLORAR BIOMAS <span class="small" id="expInfo"></span>
-        </p>
-        <div class="biome-grid" id="biomeGrid"></div>
-        <button class="btn-big" id="expBack" type="button">◂ CAMPAMENTO</button>
-      </section>
-      <section id="scrTeam" class="screen">
-        <p class="picktitle">
-          ▸ 👥 TU EQUIPO
-          <span class="small"
-            >(↑↓ orden · ⭐ activo · 📋 ficha · 🛠️ taller · 🍬 objetos)</span
-          >
-        </p>
-        <div class="panel" id="teamPanel"></div>
-        <p class="picktitle" style="color: #8a6d00">▸ 📦 DEPÓSITO</p>
-        <div class="panel" id="boxPanel"></div>
-        <button class="btn-big" id="teamBack" type="button">◂ VOLVER</button>
-      </section>
-      <section id="scrDex" class="screen">
-        <p class="picktitle">
-          ▸ 📕 POKÉDEX <span class="small" id="dexCount"></span>
-        </p>
-        <div id="dexGrid"></div>
-        <button class="btn-big" id="dexBack" type="button">◂ VOLVER</button>
-      </section>
-      <section id="scrBattle" class="screen">
-        <div id="arena">
-          <div class="sun"></div>
-          <div class="info einfo">
-            <div class="row">
-              <span
-                ><span class="pname" id="enName">???</span
-                ><span class="st" id="enStatus"></span></span
-              ><span class="plv" id="enLv">Nv.?</span>
-            </div>
-            <div class="trow" id="enTypes"></div>
-            <div class="hpwrap">
-              <span class="hplab">PS</span>
-              <div class="hpbar">
-                <div class="hpfill" id="enHpFill" style="width: 0%"></div>
-              </div>
-            </div>
-            <div class="hpnum" id="enHpTxt">? / ?</div>
-            <div class="hpnum" id="enTrainer" style="color: var(--red)"></div>
-          </div>
-          <div class="plat ep"></div>
-          <div class="spr esp" id="enSpr">
-            <div class="bob"><img id="enImg" alt="" /></div>
-          </div>
-          <div class="pball" id="pball"></div>
-          <div class="plat pp"></div>
-          <div class="spr psp">
-            <div class="bob b2"><img id="plImg" alt="" /></div>
-          </div>
-          <div class="info pinfo">
-            <div class="row">
-              <span
-                ><span class="pname" id="plName">???</span
-                ><span class="st" id="plStatus"></span></span
-              ><span class="plv" id="plLv">Nv.?</span>
-            </div>
-            <div class="trow" id="plTypes"></div>
-            <div class="hpwrap">
-              <span class="hplab">PS</span>
-              <div class="hpbar">
-                <div class="hpfill" id="plHpFill" style="width: 0%"></div>
-              </div>
-            </div>
-            <div class="hpnum" id="plHpTxt">? / ?</div>
-            <div class="xpbar" id="plXpWrap" style="display: none">
-              <div class="xpfill" id="plXpFill" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-        <div class="infbar" id="infBar" style="display: none">
-          <span>⚔️ INFINITO</span><span id="infBarScore">🏆 0</span
-          ><span id="infBarStreak">🔥 0</span>
-          <span id="infBarBattles">⚔️ 0</span
-          ><span id="infBarEnergy">⚡ 0</span>
-          <button
-            class="btn-sq"
-            id="infBarBuy"
-            type="button"
-            style="font-size: 11px"
-          >
-            +1⚡(100🪙)
-          </button>
-          <button
-            class="btn-sq"
-            id="infBarPts"
-            type="button"
-            style="font-size: 11px"
-          >
-            📊 Puntos
-          </button>
-          <button
-            class="btn-sq"
-            id="infBarExit"
-            type="button"
-            style="font-size: 11px"
-          >
-            🚪 Salir
-          </button>
-        </div>
-        <div id="console">
-          <div id="logBox">
-            <span id="logTxt">...</span><span class="caret">▼</span>
-          </div>
-          <div id="actions"></div>
-        </div>
-      </section>
+      <div id="statusBar"></div>
+      <div id="content"></div>
+      <div id="buttonBar"></div>
     </div>
-    <div
-      class="ovl"
-      id="ovLoad"
-      style="background: rgba(25, 25, 50, 0.7); z-index: 60"
-    >
-      <div style="text-align: center">
-        <div class="lball"></div>
-        <p class="px" id="loadTxt" style="font-size: 10px; color: #fff">
-          CARGANDO…
-        </p>
-      </div>
-    </div>
-    <div class="ovl" id="ovName">
-      <div
-        class="ovl-card"
-        style="border-top: 16px solid #2fae7d; max-width: 360px"
-      >
-        <h2 class="px">🗺️ NUEVA AVENTURA</h2>
-        <p style="font-weight: 800">¿Cómo te llamas, entrenador/a?</p>
-        <input
-          id="advNameInput"
-          maxlength="12"
-          placeholder="ENTRENADOR"
-          autocomplete="off"
-        />
+    <div class="ovl" id="ovDlg">
+      <div class="ovl-card">
         <div
+          id="dlgWho"
+          class="px"
+          style="font-size: 10px; color: var(--blue)"
+        ></div>
+        <p
+          id="dlgTxt"
+          style="font-size: 14px; line-height: 1.5; min-height: 50px"
+        ></p>
+        <div
+          id="dlgChoices"
           style="
             display: flex;
+            flex-direction: column;
             gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
+            margin-top: 8px;
           "
-        >
-          <button class="btn-big grn" id="advNameOk" type="button">
-            ¡EMPEZAR! ▸
-          </button>
-          <button class="btn-big" id="advNameBack" type="button">◂</button>
-        </div>
+        ></div>
+        <button class="btn-big grn" id="dlgNext" type="button">
+          CONTINUAR ▸
+        </button>
       </div>
     </div>
     <div class="ovl" id="ovInf">
-      <div class="ovl-card pur">
-        <h2 class="px">⚔️ DESAFÍO INFINITO</h2>
-        <p style="font-size: 12.5px; color: #555">
-          Entrená sin límite: PS full al entrar, sin capturas. Al salir
-          conservás niveles, puntos y 🪙.
-        </p>
-        <div class="infbar" style="justify-content: center">
-          <span id="infScore">🏆 0</span><span id="infStreak">🔥 0</span
-          ><span id="infBattles">⚔️ 0</span><span id="infEnergy">⚡ 0</span>
-        </div>
+      <div class="ovl-card win">
+        <h2>⚔️ DESAFÍO INFINITO</h2>
+        <p id="infStats" style="font-size: 13px"></p>
         <div id="infTeam" style="text-align: left; margin-top: 8px"></div>
         <div
           style="
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 10px;
           "
         >
-          <button class="btn-big pur" id="infNextBtn" type="button">
-            ⚔️ SIGUIENTE BATALLA
+          <button class="btn-big grn" id="infNextBtn" type="button">
+            ⚔️ SIGUIENTE BATALLA (GRATIS)
           </button>
-          <button
-            class="btn-big"
-            id="infTeamBtn"
-            type="button"
-            style="background: #58a6d0"
-          >
-            👥 EQUIPO / PUNTOS / OBJETOS
-          </button>
-          <button class="btn-big ylw" id="infEnergyBtn" type="button">
-            ⚡ COMPRAR ENERGÍA (+1 · 100🪙)
+          <button class="btn-big ylw" id="infTeamBtn" type="button">
+            👥 VER EQUIPO
           </button>
           <button class="btn-big red" id="infExitBtn" type="button">
-            🚪 SALIR (guarda racha y puntos)
+            🚪 SALIR
           </button>
         </div>
       </div>
     </div>
-    <div class="ovl" id="ovMonItems">
-      <div
-        class="ovl-card"
-        style="max-width: 360px; border-top: 16px solid #2fae7d"
-      >
-        <h2 class="px" style="font-size: 12px">
-          🍬 OBJETOS EN <span id="miName"></span>
-        </h2>
-        <div id="monItemList" style="text-align: left"></div>
-        <button class="btn-big grn" id="miClose" type="button">LISTO</button>
+    <div class="ovl" id="ovContinue">
+      <div class="ovl-card lose">
+        <h2>💀 EQUIPO DERROTADO</h2>
+        <p id="contText"></p>
+        <p id="contCost" style="color: #c0392b"></p>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <button class="btn-big grn" id="contYes" type="button">
+            ⚡ CONTINUAR
+          </button>
+          <button class="btn-big ylw" id="contBuy" type="button">
+            🪙 COMPRAR +1⚡ (100🪙)
+          </button>
+          <button class="btn-big red" id="contNo" type="button">
+            🚪 SALIR
+          </button>
+        </div>
       </div>
     </div>
-    <div class="ovl" id="ovRename">
-      <div class="ovl-card win" style="max-width: 340px">
-        <h2 class="px" style="font-size: 12px">✏️ NUEVO MOTE</h2>
-        <img
-          id="renArt"
-          alt=""
-          style="width: 90px; height: 90px; object-fit: contain"
+    <div class="ovl" id="ovName">
+      <div class="ovl-card">
+        <h2>🗺️ NUEVA AVENTURA</h2>
+        <p>¿Cómo te llamas, entrenador/a?</p>
+        <input
+          id="advNameInput"
+          maxlength="12"
+          placeholder="ENTRENADOR"
+          style="
+            font-family: &quot;Press Start 2P&quot;;
+            font-size: 10px;
+            padding: 10px;
+            border: 3px solid var(--ink);
+            border-radius: 9px;
+            width: 90%;
+            max-width: 260px;
+            text-transform: uppercase;
+          "
         />
-        <p id="renName" class="px" style="font-size: 10px"></p>
-        <input id="renInput" maxlength="12" placeholder="Nuevo mote…" />
         <div
           style="
             display: flex;
             gap: 8px;
             justify-content: center;
-            flex-wrap: wrap;
+            margin-top: 8px;
           "
         >
-          <button class="btn-big grn" id="renOk" type="button">GUARDAR</button>
-          <button class="btn-big" id="renCancel" type="button">CANCELAR</button>
+          <button class="btn-big grn" id="advNameOk" type="button">
+            ¡EMPEZAR!
+          </button>
+          <button class="btn-big" id="advNameBack" type="button">◂</button>
         </div>
-      </div>
-    </div>
-    <div class="ovl" id="ovEvo">
-      <div class="ovl-card win" style="max-width: 380px">
-        <div id="confettiEvo"></div>
-        <h2 class="px" style="font-size: 12px">✨ ¡EVOLUCIÓN! ✨</h2>
-        <img
-          id="evoArt"
-          alt=""
-          style="width: 140px; height: 140px; object-fit: contain"
-        />
-        <p
-          id="evoTxt"
-          style="font-weight: 900; font-size: 14px; line-height: 1.5"
-        ></p>
-        <button class="btn-big ylw" id="evoOk" type="button">¡GENIAL! ▸</button>
-      </div>
-    </div>
-    <div class="ovl" id="ovEnd">
-      <div class="ovl-card win">
-        <div id="confettiEnd"></div>
-        <div style="font-size: 56px">🌟</div>
-        <h2 class="px" style="font-size: 13px">¡REGIÓN ÁMBAR SALVADA!</h2>
-        <p id="endTxt" style="line-height: 1.6"></p>
-        <button class="btn-big ylw" id="endOk" type="button">
-          ¡HÉROE DEL FARO! ▸
-        </button>
-      </div>
-    </div>
-    <div class="ovl" id="ovStone">
-      <div
-        class="ovl-card"
-        style="max-width: 340px; border-top: 16px solid #8a6d00"
-      >
-        <h2 class="px" style="font-size: 12px">🪨 USAR PIEDRA EVOLUTIVA</h2>
-        <div id="stoneList" style="text-align: left"></div>
-        <button class="btn-big" id="stoneBack" type="button">CANCELAR</button>
-      </div>
-    </div>
-    <div class="ovl" id="ovFicha">
-      <div class="ovl-card win" style="max-width: 400px">
-        <div id="fichaBox"></div>
-        <button class="btn-big" id="fichaClose" type="button">CERRAR</button>
-      </div>
-    </div>
-    <div class="ovl" id="ovTaller">
-      <div class="ovl-card" style="border-top: 16px solid #58a6d0">
-        <h2 class="px" style="font-size: 12px">🛠️ TALLER DE MOVIMIENTOS</h2>
-        <div class="coinbar">
-          <span id="tallerMon" style="font-size: 13px"></span
-          ><span class="c" id="tallerCoins">🪙0</span>
-        </div>
-        <p class="px" style="font-size: 8px; color: #2a75bb; margin-top: 8px">
-          ▸ EQUIPADOS (máx 4)
-        </p>
-        <div id="tallerEquipped" style="text-align: left"></div>
-        <p class="px" style="font-size: 8px; color: #2a75bb; margin-top: 8px">
-          ▸ APRENDIDOS (sin equipar)
-        </p>
-        <div id="tallerLearned" style="text-align: left"></div>
-        <p class="px" style="font-size: 8px; color: #8a6d00; margin-top: 8px">
-          ▸ APRENDER (MT) · básica 300🪙 · especial 500🪙
-        </p>
-        <div
-          id="tallerShop"
-          style="text-align: left; max-height: 24vh; overflow-y: auto"
-        ></div>
-        <button
-          class="btn-big"
-          id="tallerBack"
-          type="button"
-          style="background: #58a6d0"
-        >
-          ◂ VOLVER
-        </button>
-      </div>
-    </div>
-    <div class="ovl" id="ovDlg">
-      <div class="ovl-card dlg">
-        <div id="dlgWho" class="px"></div>
-        <div id="dlgTxt"></div>
-        <div id="dlgChoices"></div>
-        <button class="btn-big grn" id="dlgNext" type="button">
-          CONTINUAR ▸
-        </button>
-      </div>
-    </div>
-    <div class="ovl" id="ovLab">
-      <div class="ovl-card" style="border-top: 16px solid #8a6d00">
-        <h2 class="px">🧪 LABORATORIO DEL PROF. ÁLAMO</h2>
-        <div class="coinbar">
-          <span id="labCount" style="font-size: 12px">🧬</span
-          ><span class="c" id="labCoins">🪙0</span>
-        </div>
-        <div class="encBox" id="labEnc"></div>
-        <div class="shop-list" id="labList"></div>
-        <button class="btn-big ylw" id="labBack" type="button">
-          ◂ VOLVER AL CAMPAMENTO
-        </button>
-      </div>
-    </div>
-    <div class="ovl" id="ovCenter">
-      <div class="ovl-card" style="border-top: 16px solid #2fae7d">
-        <h2 class="px">🏥 CENTRO POKÉMON</h2>
-        <div class="coinbar">
-          <span>Tarifa: 0.5🪙 por 1% PS · estado 10🪙</span
-          ><span class="c" id="centerCoins">🪙0</span>
-        </div>
-        <div class="shop-list" id="centerList"></div>
-        <button class="btn-big grn" id="centerBack" type="button">
-          ◂ VOLVER
-        </button>
       </div>
     </div>
     <div class="ovl" id="ovNick">
       <div class="ovl-card win">
-        <h2 class="px">¡CAPTURADO!</h2>
-        <img id="nickArt" alt="" />
-        <p id="nickTitle" class="px"></p>
-        <input id="nickInput" maxlength="12" placeholder="Mote…" />
+        <h2>¡CAPTURADO!</h2>
+        <img
+          id="nickArt"
+          style="width: 100px; height: 100px; object-fit: contain"
+        />
+        <p id="nickTitle" class="px" style="font-size: 10px"></p>
+        <input
+          id="nickInput"
+          maxlength="12"
+          placeholder="Mote…"
+          style="
+            font-family: &quot;Press Start 2P&quot;;
+            font-size: 10px;
+            padding: 9px;
+            border: 3px solid var(--ink);
+            border-radius: 9px;
+            width: 90%;
+            max-width: 240px;
+          "
+        />
         <div
           style="
             display: flex;
             gap: 8px;
             justify-content: center;
-            flex-wrap: wrap;
+            margin-top: 8px;
           "
         >
           <button class="btn-big grn" id="nickOk" type="button">
-            ¡ASÍ SE LLAMARÁ!
+            ¡PONER MOTE!
           </button>
-          <button class="btn-big" id="nickSkip" type="button">
-            NOMBRE ORIGINAL
-          </button>
+          <button class="btn-big" id="nickSkip" type="button">SIN MOTE</button>
         </div>
       </div>
     </div>
     <div class="ovl" id="ovBadge">
       <div class="ovl-card win">
-        <div id="confetti"></div>
-        <div style="font-size: 54px" id="badgeIcon">🏅</div>
-        <h2 class="px" id="badgeName">MEDALLA</h2>
+        <div
+          id="confetti"
+          style="
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+          "
+        ></div>
+        <div style="font-size: 50px" id="badgeIcon">🏅</div>
+        <h2 id="badgeName">MEDALLA</h2>
         <p id="badgeTxt"></p>
         <button class="btn-big ylw" id="badgeOk" type="button">
           ¡GENIAL! ▸
         </button>
       </div>
     </div>
-    <div class="ovl" id="ovShop">
-      <div class="ovl-card" style="border-top: 16px solid var(--blue)">
-        <h2 class="px">🛒 TIENDA</h2>
-        <div class="coinbar">
-          <span>«¡Ocasión única!»</span
-          ><span class="c" id="shopCoins">🪙0</span>
-        </div>
-        <div class="shop-list" id="shopList"></div>
-        <button class="btn-big" id="shopBack" type="button">◂ VOLVER</button>
-      </div>
-    </div>
     <div class="ovl" id="ovBag">
-      <div
-        class="ovl-card"
-        style="max-width: 340px; border-top: 16px solid #b08d57"
-      >
-        <h2 class="px" style="font-size: 12px">🎒 MOCHILA</h2>
+      <div class="ovl-card" style="max-width: 340px">
+        <h2>🎒 MOCHILA</h2>
         <div id="bagList"></div>
-        <button
-          class="btn-big"
-          id="bagClose"
-          type="button"
-          style="background: #b08d57"
-        >
-          CERRAR ✕
-        </button>
+        <button class="btn-big" id="bagClose" type="button">CERRAR ✕</button>
       </div>
     </div>
     <div class="ovl" id="ovSwap">
-      <div
-        class="ovl-card"
-        style="max-width: 360px; border-top: 16px solid #58a6d0"
-      >
-        <h2 class="px" style="font-size: 12px" id="swapTitle">
-          🔄 CAMBIAR POKÉMON
-        </h2>
-        <p style="font-size: 12px; color: #666" id="swapHint">
-          Cambiar consume el turno: ¡el rival atacará!
-        </p>
+      <div class="ovl-card" style="max-width: 360px">
+        <h2 id="swapTitle">🔄 CAMBIAR POKÉMON</h2>
+        <p id="swapHint" style="font-size: 12px; color: #666"></p>
         <div id="swapList"></div>
-        <button
-          class="btn-big"
-          id="swapClose"
-          type="button"
-          style="background: #58a6d0"
-        >
-          CANCELAR
-        </button>
+        <button class="btn-big" id="swapClose" type="button">CANCELAR</button>
       </div>
     </div>
     <div class="ovl" id="ovPts">
-      <div
-        class="ovl-card"
-        style="max-width: 380px; border-top: 16px solid #8a6d00"
-      >
-        <h2 class="px" style="font-size: 12px">📊 REPARTIR PUNTOS</h2>
-        <p id="ptsInfo" style="font-weight: 900"></p>
-        <div id="ptsRows"></div>
-        <div
-          id="ptsReset"
-          style="
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px dashed #d8d2b8;
-            display: none;
-          "
-        >
-          <p style="font-size: 12px; color: #555">
-            🔁 RESET (Nv50+): vuelve a Nv5, recuperás todos los puntos +5 bonus.
-            Cuesta <b>100🪙</b>.
-          </p>
-          <button class="btn-big red" id="resetBtn" type="button">
-            🔁 HACER RESET
-          </button>
-        </div>
+      <div class="ovl-card" style="max-width: 380px">
+        <h2>📊 REPARTIR PUNTOS</h2>
+        <p id="ptsInfo"></p>
+        <div id="ptsRows" style="text-align: left"></div>
         <div
           style="
             display: flex;
             gap: 8px;
             justify-content: center;
-            flex-wrap: wrap;
             margin-top: 8px;
           "
         >
           <button class="btn-big ylw" id="ptsAuto" type="button">
-            AUTOREPARTO ✨
+            AUTOREPARTO
           </button>
           <button class="btn-big" id="ptsClose" type="button">LISTO</button>
         </div>
@@ -676,15 +260,16 @@
       </div>
     </div>
     <div class="ovl" id="ovConfirm">
-      <div
-        class="ovl-card"
-        style="max-width: 340px; border-top: 16px solid var(--red)"
-      >
-        <p
-          id="cfTxt"
-          style="font-weight: 900; font-size: 14px; line-height: 1.5"
-        ></p>
-        <div style="display: flex; gap: 8px; justify-content: center">
+      <div class="ovl-card" style="max-width: 320px">
+        <p id="cfTxt" style="font-size: 14px; line-height: 1.4"></p>
+        <div
+          style="
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+          "
+        >
           <button class="btn-big red" id="cfYes" type="button">SÍ</button>
           <button class="btn-big" id="cfNo" type="button">NO</button>
         </div>
@@ -692,53 +277,6 @@
     </div>
     <div id="toast"></div>
     <div id="saveInd">💾 Guardado</div>
-    <div id="devPanel">
-      <div class="dev-head">
-        <b>🐛 MODO DESARROLLADOR</b><span id="devClose">✕</span>
-      </div>
-      <div id="devState"></div>
-      <div id="devLog"></div>
-      <div class="dev-tools">
-        <button id="devCoins" type="button">+500🪙</button>
-        <button id="devEnergy" type="button">+⚡MAX</button>
-        <button id="devHeal" type="button">CURAR TODO</button>
-        <button id="devBadge" type="button">+1 MEDALLA(dev)</button>
-      </div>
-    </div>
-    <div class="ovl" id="ovContinue">
-      <div class="ovl-card lose">
-        <h2 class="px">💀 EQUIPO DERROTADO</h2>
-        <p id="contText" style="font-weight: 800; margin: 10px 0"></p>
-        <p
-          id="contCost"
-          style="font-weight: 800; color: #c0392b; margin-bottom: 14px"
-        ></p>
-        <button
-          class="btn-big grn"
-          id="contYes"
-          type="button"
-          style="width: 100%; margin-bottom: 8px"
-        >
-          ⚡ CONTINUAR
-        </button>
-        <button
-          class="btn-big ylw"
-          id="contBuy"
-          type="button"
-          style="width: 100%; margin-bottom: 8px"
-        >
-          🪙 COMPRAR +1⚡ (100🪙)
-        </button>
-        <button
-          class="btn-big red"
-          id="contNo"
-          type="button"
-          style="width: 100%"
-        >
-          🚪 SALIR
-        </button>
-      </div>
-    </div>
     <script src="data.js"></script>
     <script src="core.js"></script>
     <script src="ui.js"></script>
