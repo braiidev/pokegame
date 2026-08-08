@@ -1536,7 +1536,6 @@ async function throwBall() {
     if (BT && !BT.ended) setBusy(false);
   }
 }
-let pendingCatchAfter = null;
 function advCatch(enemy, after) {
   pendingCatchAfter = after;
   if (G.dex) {
