@@ -2153,22 +2153,27 @@ function closeLab() {
   refreshAfterOverlay();
 }
 
-// ===== MODO INFINITO =====
 function enterInf() {
-  if (!G.inf) G.inf = { unlocked: false, totalScore: 0, bestStreak: 0 };
+  if (!G.inf) G.inf = { unlocked: false, bestBattles: 0, bestVictories: 0 };
   if (!G.inf.unlocked) {
     G.inf.unlocked = true;
-    toast("⚔️ ¡Modo Infinito desbloqueado! +1⚡ máximo.");
+    toast("⚔️ ¡Modo Infinito desbloqueado!");
   }
+  if (G.energy < 1) {
+    toast("⚡ Necesitás 1⚡ para entrar al Infinito.");
+    return;
+  }
+  G.energy -= 1;
   INF = {
     active: true,
     snapshot: G.team.map(function (m) {
       return m.hp;
     }),
     runScore: 0,
-    runStreak: 0,
     battles: 0,
+    victories: 0,
     continues: 0,
+    energySpent: 1,
   };
   G.team.forEach(function (m) {
     m.hp = m.maxHp;
@@ -2178,15 +2183,16 @@ function enterInf() {
   updateHud();
   openInfHub();
 }
+
+// ===== MODO INFINITO =====
 function openInfHub() {
-  const cost = 1 + Math.floor(INF.battles / 10);
-  $("#infScore").textContent = "🏆 " + INF.runScore;
-  $("#infStreak").textContent = "🔥 " + INF.runStreak;
-  $("#infBattles").textContent = "⚔️ " + INF.battles;
-  $("#infEnergy").textContent = "⚡ " + G.energy + "/" + eMax();
+  $("#infScore").textContent = "⚔️ " + INF.battles + " batallas";
+  $("#infStreak").textContent = "🏆 " + INF.victories + " victorias";
+  $("#infBattles").textContent = "⚡ " + G.energy + "/" + eMax();
+  $("#infEnergy").textContent = "💰 " + G.coins + "🪙";
   const nb = $("#infNextBtn");
-  nb.textContent = "⚔️ SIGUIENTE BATALLA (" + cost + "⚡)";
-  nb.disabled = G.energy < cost;
+  nb.textContent = "⚔️ SIGUIENTE BATALLA";
+  nb.disabled = false;
   const ts = $("#infTeam");
   if (ts) {
     ts.innerHTML = "";
@@ -2204,8 +2210,6 @@ function openInfHub() {
         m.hp +
         "/" +
         m.maxHp +
-        (m.bankPts ? " · ✨" + m.bankPts + " pts" : "") +
-        (m.resets ? " · 🔁×" + m.resets : "") +
         "</span></span>";
       ts.appendChild(row);
     });
@@ -2242,13 +2246,13 @@ function buyEnergy() {
   toast("⚡ +1 energía.");
 }
 async function spawnInfBattle() {
-  const strongest = Math.max.apply(
-    null,
-    G.team.map(function (m) {
-      return m.lvl;
-    }),
-  );
-  const lvl = Math.max(2, strongest + Math.floor(rnd(-2, 3)));
+  if (!INF.active) return;
+  if (!teamAlive()) {
+    infOnLose();
+    return;
+  }
+  ensureActiveAlive();
+  prepActive();
   showLoader("⚔️ Buscando rival…");
   let d = null;
   const id = 1 + Math.floor(Math.random() * 151);
@@ -2261,13 +2265,19 @@ async function spawnInfBattle() {
   }
   hideLoader();
   if (!d) {
-    toast("⚠️ Sin conexión.");
+    toast("⚠️ Sin conexión. Reintentá.");
     openInfHub();
     return;
   }
+  const strongest = Math.max.apply(
+    null,
+    G.team.map(function (m) {
+      return m.lvl;
+    }),
+  );
+  const lvl = Math.max(2, strongest + Math.floor(rnd(-2, 3)));
   const e = makeFighter(d, lvl);
-  await preloadImg(e.sprF);
-  await preloadImg(activePlayerMon().sprB);
+  if (G.dex) G.dex.seen[d.id] = 1;
   battleStart({
     kind: "inf",
     enemy: e,
@@ -2275,7 +2285,8 @@ async function spawnInfBattle() {
     canRun: false,
     canSwap: true,
     xpMode: true,
-    intro: "¡" + e.name + " salvaje (Nv." + lvl + ")!",
+    intro:
+      "¡Batalla " + INF.battles + "! ¡" + e.name + " salvaje (Nv." + lvl + ")!",
     onWin: infOnWin,
     onLose: infOnLose,
     onFlee: function () {
@@ -2283,76 +2294,101 @@ async function spawnInfBattle() {
     },
   });
 }
-async function infOnWin() {
-  INF.runStreak++;
-  const pts = 100 + BT.enemy.lvl * 20 + INF.runStreak * 15;
-  INF.runScore += pts;
-  const cns = 15 + BT.enemy.lvl * 5;
-  G.coins += cns;
-  const act = activePlayerMon();
-  act.hp = Math.min(act.maxHp, act.hp + Math.floor(act.maxHp * 0.4));
-  G.team.forEach(function (m) {
-    if (m !== act && m.hp > 0)
-      m.hp = Math.min(m.maxHp, m.hp + Math.floor(m.maxHp * 0.2));
-  });
+function infOnWin() {
+  INF.victories++;
   INF.battles++;
+  G.coins += 15 + BT.enemy.lvl * 5;
+  const act = activePlayerMon();
   if (INF.battles % 10 === 0) {
+    G.energy = Math.min(eMax(), G.energy + 1);
+    act.hp = Math.min(act.maxHp, act.hp + Math.floor(act.maxHp * 0.65));
     G.team.forEach(function (m) {
-      if (m.hp > 0) m.hp = Math.min(m.maxHp, m.hp + Math.floor(m.maxHp * 0.1));
-      resetCd(m);
+      if (m !== act && m.hp > 0)
+        m.hp = Math.min(m.maxHp, m.hp + Math.floor(m.maxHp * 0.4));
     });
-    toast("🎉 ¡Cada 10 batallas: +10% PS y cooldown completo!");
+    toast("⭐ ¡Batalla " + INF.battles + "! +1⚡ y cura mejorada (+65%/+40%)");
+  } else {
+    act.hp = Math.min(act.maxHp, act.hp + Math.floor(act.maxHp * 0.4));
+    G.team.forEach(function (m) {
+      if (m !== act && m.hp > 0)
+        m.hp = Math.min(m.maxHp, m.hp + Math.floor(m.maxHp * 0.2));
+    });
   }
-  await processEvos();
   save();
   updateHud();
+  if (BT && BT.xpMode) gainXp(activePlayerMon(), xpGive("wild", BT.enemy.lvl));
+  processEvos();
   openInfHub();
 }
-async function infOnLose() {
+function infOnLose() {
   const cost = 2 + INF.continues;
-  if (G.energy >= cost) {
-    const ok = await askBox(
-      "¡Tu equipo cayó! ¿Pagar <b>" +
-        cost +
-        "⚡</b> para seguir con la racha? (PS a full)",
-    );
-    if (ok) {
-      G.energy -= cost;
-      INF.continues++;
-      G.team.forEach(function (m) {
-        m.hp = m.maxHp;
-        m.status = null;
-      });
-      save();
-      updateHud();
-      openInfHub();
+  $("#contText").textContent = "Tu equipo cayó. ¿Continuar por " + cost + "⚡?";
+  $("#contCost").textContent =
+    "Continuar: " + cost + "⚡ (tenés " + G.energy + "⚡, " + G.coins + "🪙)";
+  $("#contBuy").style.display =
+    G.coins >= 100 && G.energy < eMax() ? "" : "none";
+  $("#contYes").onclick = async function () {
+    if (G.energy < cost) {
+      toast("⚡ No tenés suficiente energía.");
       return;
     }
-  }
-  exitInf();
+    G.energy -= cost;
+    INF.continues++;
+    G.team.forEach(function (m) {
+      m.hp = m.maxHp;
+      m.status = null;
+    });
+    $("#ovContinue").classList.remove("show");
+    save();
+    updateHud();
+    await say("¡" + G.team[0].nick + " vuelve al combate!");
+    spawnInfBattle();
+  };
+  $("#contBuy").onclick = function () {
+    if (G.coins >= 100 && G.energy < eMax()) {
+      G.coins -= 100;
+      G.energy = Math.min(eMax(), G.energy + 1);
+      save();
+      updateHud();
+      $("#contCost").textContent =
+        "Continuar: " +
+        cost +
+        "⚡ (tenés " +
+        G.energy +
+        "⚡, " +
+        G.coins +
+        "🪙)";
+      $("#contBuy").style.display =
+        G.coins >= 100 && G.energy < eMax() ? "" : "none";
+    }
+  };
+  $("#contNo").onclick = function () {
+    $("#ovContinue").classList.remove("show");
+    exitInf();
+  };
+  $("#ovContinue").classList.add("show");
 }
 function exitInf() {
   if (!INF.active) return;
-  if (!G.inf) G.inf = { unlocked: false, totalScore: 0, bestStreak: 0 };
-  G.inf.totalScore = (G.inf.totalScore || 0) + INF.runScore;
-  G.inf.bestStreak = Math.max(G.inf.bestStreak || 0, INF.runStreak);
+  G.inf.bestBattles = Math.max(G.inf.bestBattles || 0, INF.battles);
+  G.inf.bestVictories = Math.max(G.inf.bestVictories || 0, INF.victories);
   G.team.forEach(function (m, i) {
     m.hp = Math.min(m.maxHp, INF.snapshot[i] || 0);
+    m.status = null;
   });
   INF.active = false;
   save();
   updateHud();
   toast(
-    "⚔️ Infinito: +" +
-      INF.runScore +
-      " pts, racha " +
-      INF.runStreak +
-      ". PS restaurados.",
+    "⚔️ Infinito terminado: " +
+      INF.battles +
+      " batallas, " +
+      INF.victories +
+      " victorias.",
   );
   $("#ovInf").classList.remove("show");
   openCamp();
 }
-
 // ===== TARJETAS DE GUARDADO =====
 function renderSlots() {
   const g = $("#slotGrid");
