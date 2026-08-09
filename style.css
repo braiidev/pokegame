@@ -1054,3 +1054,27 @@ img.sucked {
     padding: 8px 11px;
   }
 }
+/* PESTAÑAS DEL EQUIPO */
+.team-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.ttab {
+  font-family: "Press Start 2P";
+  font-size: 9px;
+  padding: 10px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--ink);
+  transition: 0.12s;
+}
+.ttab:hover {
+  transform: translateY(-2px);
+}
+.ttab.on {
+  background: var(--yellow);
+}

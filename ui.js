@@ -336,7 +336,7 @@ function renderCampButtons() {
     { label: "🧪 LABORATORIO", cls: "lab", fn: () => openLab() },
     { label: "🛒 TIENDA", cls: "", fn: () => openShop() },
     {
-      label: "👥 EQUIPO",
+      label: "👥 POKEMONS",
       cls: "",
       fn: () => {
         renderScreen(renderTeamHTML());
@@ -603,14 +603,37 @@ function openExplore() {
 }
 
 /* ===== EQUIPO (2 PANELES) ===== */
+/* ===== TUS POKÉMON (MOCHILA + REPISA) ===== */
 let teamSel = 0;
+let teamTab = "mochila";
+let boxSel = 0;
+
 function renderTeamHTML() {
-  let html =
-    '<div class="team-split"><div class="team-items"><h4>🎒 EQUIPAMIENTO</h4><div id="itemList"></div></div>';
+  let html = '<div class="team-tabs">';
   html +=
-    '<div class="team-poke"><h4>👥 POKÉMON (' +
-    G.team.length +
-    '/6)</h4><div class="poke-row" id="pokeRow"></div><div class="ficha" id="fichaBox"></div></div></div>';
+    '<button class="ttab' +
+    (teamTab === "mochila" ? " on" : "") +
+    '" data-tab="mochila" type="button">🎒 MOCHILA</button>';
+  html +=
+    '<button class="ttab' +
+    (teamTab === "repisa" ? " on" : "") +
+    '" data-tab="repisa" type="button">📦 REPISA (' +
+    G.box.length +
+    ")</button>";
+  html += "</div>";
+  if (teamTab === "mochila") {
+    html +=
+      '<div class="team-split"><div class="team-items"><h4>🎒 OBJETOS</h4><div id="itemList"></div></div>';
+    html +=
+      '<div class="team-poke"><h4>👥 EQUIPO (' +
+      G.team.length +
+      '/6)</h4><div class="poke-row" id="pokeRow"></div><div class="ficha" id="fichaBox"></div></div></div>';
+  } else {
+    html +=
+      '<div class="team-poke" style="max-width:100%"><h4>📦 REPISA (' +
+      G.box.length +
+      ')</h4><div class="poke-row" id="boxRow"></div><div class="ficha" id="boxFichaBox"></div></div>';
+  }
   return html;
 }
 function renderTeamButtons() {
@@ -624,66 +647,82 @@ function renderTeamButtons() {
       },
     },
   ]);
+  const tabs = document.querySelectorAll(".ttab");
+  tabs.forEach((btn) => {
+    btn.onclick = () => {
+      teamTab = btn.dataset.tab;
+      renderScreen(renderTeamHTML());
+      renderTeamButtons();
+    };
+  });
   renderTeamView();
 }
 function renderTeamView() {
-  const il = $("#itemList");
-  if (il) {
-    il.innerHTML = "";
-    const items = [
-      ["ball", "🔴 Pokeball"],
-      ["potion", "💉 Poción"],
-      ["antidote", "🧪 Antídoto"],
-      ["antipar", "⚡ Antiparalizador"],
-      ["despertar", "☕ Despertador"],
-    ];
-    items.forEach(([k, nm]) => {
-      const row = document.createElement("div");
-      row.className = "item-row";
-      row.innerHTML =
-        nm + '<span class="cnt">×' + (G.items[k] || 0) + "</span>";
-      il.appendChild(row);
-    });
-    const st = document.createElement("div");
-    st.className = "item-row";
-    st.style.marginTop = "8px";
-    st.innerHTML = "<b>🪨 Piedras</b>";
-    il.appendChild(st);
-    for (const k in STONE_INFO) {
-      const inf = STONE_INFO[k];
-      const row = document.createElement("div");
-      row.className = "item-row";
-      row.innerHTML =
-        inf[0] +
-        " " +
-        inf[1] +
-        '<span class="cnt">×' +
-        (G.stones[k] || 0) +
-        "</span>";
-      il.appendChild(row);
-    }
+  if (teamTab === "mochila") {
+    renderTeamItems();
+    renderTeamPokeRow();
+    renderTeamFicha();
+  } else {
+    renderRepisaView();
   }
-  const pr = $("#pokeRow");
-  if (pr) {
-    pr.innerHTML = "";
-    G.team.forEach((m, i) => {
-      const sq = document.createElement("div");
-      sq.className = "psq" + (i === teamSel ? " sel" : "");
-      sq.innerHTML =
-        '<img src="' +
-        m.art +
-        '">' +
-        (m.hp <= 0 ? '<span class="ko">💀</span>' : "");
-      sq.onclick = () => {
-        teamSel = i;
-        renderTeamView();
-      };
-      pr.appendChild(sq);
-    });
-  }
-  renderFicha();
 }
-function renderFicha() {
+function renderTeamItems() {
+  const il = $("#itemList");
+  if (!il) return;
+  il.innerHTML = "";
+  const items = [
+    ["ball", "🔴 Pokeball"],
+    ["potion", "💉 Poción"],
+    ["antidote", "🧪 Antídoto"],
+    ["antipar", "⚡ Antiparalizador"],
+    ["despertar", "☕ Despertador"],
+  ];
+  items.forEach(([k, nm]) => {
+    const row = document.createElement("div");
+    row.className = "item-row";
+    row.innerHTML = nm + '<span class="cnt">×' + (G.items[k] || 0) + "</span>";
+    il.appendChild(row);
+  });
+  const st = document.createElement("div");
+  st.className = "item-row";
+  st.style.marginTop = "8px";
+  st.innerHTML = "<b>🪨 Piedras</b>";
+  il.appendChild(st);
+  for (const k in STONE_INFO) {
+    const inf = STONE_INFO[k];
+    const row = document.createElement("div");
+    row.className = "item-row";
+    row.innerHTML =
+      inf[0] +
+      " " +
+      inf[1] +
+      '<span class="cnt">×' +
+      (G.stones[k] || 0) +
+      "</span>";
+    il.appendChild(row);
+  }
+}
+function renderTeamPokeRow() {
+  const pr = $("#pokeRow");
+  if (!pr) return;
+  pr.innerHTML = "";
+  G.team.forEach((m, i) => {
+    const sq = document.createElement("div");
+    sq.className = "psq" + (i === teamSel ? " sel" : "");
+    sq.innerHTML =
+      '<img src="' +
+      m.art +
+      '">' +
+      (m.hp <= 0 ? '<span class="ko">💀</span>' : "");
+    sq.onclick = () => {
+      teamSel = i;
+      renderTeamPokeRow();
+      renderTeamFicha();
+    };
+    pr.appendChild(sq);
+  });
+}
+function renderTeamFicha() {
   const fb = $("#fichaBox");
   if (!fb) return;
   const m = G.team[teamSel];
@@ -743,7 +782,199 @@ function renderFicha() {
       : "") +
     (hint ? '<p style="font-weight:800;margin-top:4px">' + hint + "</p>" : "") +
     '<div class="ficha-acts" id="fichaActs"></div>';
-  renderFichaActs(m);
+  renderTeamFichaActs(m);
+}
+function renderTeamFichaActs(m) {
+  const fa = $("#fichaActs");
+  if (!fa) return;
+  fa.innerHTML = "";
+  const mkBtn = (label, fn, dis) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn-sq";
+    b.textContent = label;
+    if (dis) b.disabled = true;
+    b.onclick = fn;
+    fa.appendChild(b);
+  };
+  mkBtn(
+    "⭐ ACTIVO",
+    () => {
+      G.active = G.team.indexOf(m);
+      save();
+      renderTeamView();
+    },
+    G.active === G.team.indexOf(m),
+  );
+  mkBtn(
+    "💉 POCIÓN",
+    () => {
+      if ((G.items.potion || 0) < 1) {
+        toast("Sin pociones.");
+        return;
+      }
+      if (m.hp <= 0) {
+        toast("Está KO. Usa Centro o Continuar.");
+        return;
+      }
+      if (m.hp >= m.maxHp) {
+        toast("Ya está al máximo.");
+        return;
+      }
+      G.items.potion--;
+      m.hp = Math.min(m.maxHp, m.hp + Math.floor(m.maxHp * 0.4));
+      SFX.heal();
+      save();
+      renderStatusBar();
+      renderTeamView();
+    },
+    (G.items.potion || 0) < 1 || m.hp <= 0 || m.hp >= m.maxHp,
+  );
+  mkBtn(
+    "📊 PUNTOS" + (m.bankPts ? " (" + m.bankPts + ")" : ""),
+    () => openPts(m, "team"),
+    m.bankPts < 1,
+  );
+  mkBtn("🪨 PIEDRA", () => openStones(m), !hasStoneFor(m));
+  mkBtn(
+    "📦 A LA REPISA",
+    () => {
+      if (G.team.length < 2) {
+        toast("Necesitas al menos 1 en el equipo.");
+        return;
+      }
+      G.box.push(G.team.splice(G.team.indexOf(m), 1)[0]);
+      if (G.active >= G.team.length) G.active = 0;
+      if (teamSel >= G.team.length) teamSel = 0;
+      save();
+      renderScreen(renderTeamHTML());
+      renderTeamButtons();
+    },
+    G.team.length < 2,
+  );
+}
+function renderRepisaView() {
+  const pr = $("#boxRow");
+  if (!pr) return;
+  pr.innerHTML = "";
+  if (!G.box.length) {
+    pr.innerHTML =
+      '<p style="font-weight:800;opacity:.6">Repisa vacía. Mandá Pokémon aquí desde la Mochila.</p>';
+  } else {
+    G.box.forEach((m, i) => {
+      const sq = document.createElement("div");
+      sq.className = "psq" + (i === boxSel ? " sel" : "");
+      sq.innerHTML =
+        '<img src="' +
+        m.art +
+        '">' +
+        (m.hp <= 0 ? '<span class="ko">💀</span>' : "");
+      sq.onclick = () => {
+        boxSel = i;
+        renderRepisaView();
+      };
+      pr.appendChild(sq);
+    });
+  }
+  renderBoxFicha();
+}
+function renderBoxFicha() {
+  const fb = $("#boxFichaBox");
+  if (!fb) return;
+  const m = G.box[boxSel];
+  if (!m) {
+    fb.innerHTML =
+      '<p style="font-weight:800;opacity:.6">Selecciona un Pokémon de la repisa.</p>';
+    return;
+  }
+  const hint = evoHint(m);
+  fb.innerHTML =
+    '<div class="ficha-head"><img src="' +
+    m.art +
+    '"><div><div class="nm">' +
+    esc(m.nick) +
+    '</div><div class="lv">Nv.' +
+    m.lvl +
+    " · XP " +
+    m.xp +
+    "/" +
+    xpNeed(m.lvl) +
+    '</div><div class="trow">' +
+    m.types.map(chip).join("") +
+    "</div></div></div>" +
+    '<div class="sb"><span>PS</span><div class="track"><i style="width:' +
+    Math.min(100, (m.hp / m.maxHp) * 100) +
+    '%"></i></div><span class="val">' +
+    m.hp +
+    "/" +
+    m.maxHp +
+    '</span><span class="pts">+' +
+    m.pts.ps * 3 +
+    "</span></div>" +
+    '<div class="sb"><span>ATQ</span><div class="track"><i style="width:' +
+    Math.min(100, m.atk / 1.6) +
+    '%"></i></div><span class="val">' +
+    m.atk +
+    '</span><span class="pts">+' +
+    m.pts.atk * 2 +
+    "</span></div>" +
+    '<div class="sb"><span>DEF</span><div class="track"><i style="width:' +
+    Math.min(100, m.def / 1.6) +
+    '%"></i></div><span class="val">' +
+    m.def +
+    '</span><span class="pts">+' +
+    m.pts.def * 2 +
+    "</span></div>" +
+    '<div class="sb"><span>VEL</span><div class="track"><i style="width:' +
+    Math.min(100, m.vel / 1.6) +
+    '%"></i></div><span class="val">' +
+    m.vel +
+    '</span><span class="pts">+' +
+    m.pts.vel * 2 +
+    "</span></div>" +
+    (m.bankPts
+      ? '<p style="font-weight:900;color:#8a6d00;margin-top:6px">✨ ' +
+        m.bankPts +
+        " puntos por repartir</p>"
+      : "") +
+    (hint ? '<p style="font-weight:800;margin-top:4px">' + hint + "</p>" : "") +
+    '<div class="ficha-acts" id="boxFichaActs"></div>';
+  renderBoxFichaActs(m);
+}
+function renderBoxFichaActs(m) {
+  const fa = $("#boxFichaActs");
+  if (!fa) return;
+  fa.innerHTML = "";
+  const mkBtn = (label, fn, dis) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn-sq";
+    b.textContent = label;
+    if (dis) b.disabled = true;
+    b.onclick = fn;
+    fa.appendChild(b);
+  };
+  mkBtn(
+    "⬆️ AL EQUIPO",
+    () => {
+      if (G.team.length >= 6) {
+        toast("Equipo lleno (6). Saca uno primero.");
+        return;
+      }
+      G.team.push(G.box.splice(boxSel, 1)[0]);
+      if (boxSel >= G.box.length) boxSel = 0;
+      save();
+      renderScreen(renderTeamHTML());
+      renderTeamButtons();
+    },
+    G.team.length >= 6,
+  );
+  mkBtn(
+    "📊 PUNTOS" + (m.bankPts ? " (" + m.bankPts + ")" : ""),
+    () => openPts(m, "box"),
+    m.bankPts < 1,
+  );
+  mkBtn("🪨 PIEDRA", () => openStones(m), !hasStoneFor(m));
 }
 function renderFichaActs(m) {
   const fa = $("#fichaActs");
@@ -913,7 +1144,8 @@ $("#ptsAuto").onclick = () => {
 };
 $("#ptsClose").onclick = () => {
   hideOvl("ovPts");
-  if (ptsCtx === "team") renderTeamView();
+  renderScreen(renderTeamHTML());
+  renderTeamButtons();
 };
 
 /* ===== CENTRO POKÉMON ===== */
