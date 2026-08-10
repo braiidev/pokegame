@@ -832,14 +832,56 @@ img.sucked {
   font-size: 11px;
 }
 #battleActions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  flex-wrap: wrap;
   margin-top: 10px;
 }
 #battleActions .bbtn {
-  flex: 1;
-  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  background: var(--btn-bg, var(--yellow)) !important;
+  color: var(--btn-color, #fff) !important;
+  border: 3px solid var(--ink) !important;
+  border-radius: 11px;
+  box-shadow: 0 4px 0 var(--ink) !important;
+  cursor: pointer;
+  font-weight: 900;
+  text-align: left;
+  font-size: 13px;
+  min-height: 52px;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
+  white-space: normal;
+}
+#battleActions .bbtn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--ink) !important;
+}
+#battleActions .bbtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+#battleActions .bbtn.secondary {
+  background: #fff !important;
+  color: var(--ink) !important;
+  border-left-width: 9px;
+  border-left-color: #9aa0b4;
+}
+#battleActions .bbtn.danger {
+  background: var(--red) !important;
+  color: #fff !important;
+  border-left-width: 9px;
+  border-left-color: #b52a0a;
+}
+#battleActions .bbtn .sub {
+  font-size: 10px;
+  opacity: 0.85;
+  font-weight: 800;
 }
 #logBox {
   background: var(--cream);

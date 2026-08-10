@@ -500,9 +500,10 @@ function battleStart(cfg) {
       const p = activePlayerMon();
       if (BT.enemy && p && BT.enemy.spe > effSpe(p))
         await say("⚡ ¡" + BT.enemy.name + " es más rápido!");
-      if (BT && !BT.ended) setBusy(false);
     } catch (e) {
       devError(e);
+    } finally {
+      // SIEMPRE desbloquea, haya o no error
       if (BT && !BT.ended) setBusy(false);
     }
   })();
@@ -698,11 +699,18 @@ async function endRound() {
   renderBattleButtons();
 }
 async function doTurn(i) {
-  if (!BT || BT.busy || BT.ended) return;
+  if (!BT || BT.ended) return;
+  if (BT.busy) {
+    toast("⏳ Esperá…");
+    return;
+  }
   const p = activePlayerMon(),
     mv = p.moves[i];
   if (!mv) return;
-  if (mv.cat === "esp" && mv.pp <= 0) return;
+  if (mv.cat === "esp" && mv.pp <= 0) {
+    toast("Sin cargas.");
+    return;
+  }
   setBusy(true);
   try {
     const playerFirst = effSpe(p) >= effSpe(BT.enemy);
@@ -716,7 +724,8 @@ async function doTurn(i) {
     if (!BT.ended) await endRound();
   } catch (e) {
     devError(e);
-    setBusy(false);
+  } finally {
+    if (BT && !BT.ended) setBusy(false);
   }
 }
 async function doRun() {
@@ -844,47 +853,58 @@ function renderBattleButtons() {
   ba.innerHTML = "";
   const p = activePlayerMon();
   if (!p || !BT) return;
+
+  // Ataques (con info de sub)
   p.moves.forEach((mv, i) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "bbtn";
-    btn.style.background = TYPE_COL[mv.type];
-    btn.style.color = "#fff";
-    btn.innerHTML =
-      mv.name + (mv.cat === "esp" ? " (" + mv.pp + "/" + mv.maxpp + ")" : "");
+    btn.style.setProperty("--btn-bg", TYPE_COL[mv.type]);
+    btn.style.setProperty("--btn-color", "#fff");
+    const ppTxt = mv.cat === "esp" ? `❄️${mv.pp}/${mv.maxpp}` : "∞";
+    btn.innerHTML = `<span>${mv.name}</span><span class="sub">${chip(mv.type)} · POD ${mv.power} · ${ppTxt}</span>`;
     if (mv.cat === "esp" && mv.pp <= 0) btn.disabled = true;
     btn.onclick = () => doTurn(i);
     ba.appendChild(btn);
   });
+
+  // Mochila
   const bag = document.createElement("button");
   bag.type = "button";
   bag.className = "bbtn secondary";
-  bag.innerHTML = "🎒 MOCHILA";
+  const b = G.items;
+  bag.innerHTML = `<span>🎒 MOCHILA</span><span class="sub">💉×${b.potion || 0} ⭐×${b.candy || 0}</span>`;
   bag.onclick = () => openBagBattle();
   ba.appendChild(bag);
+
+  // Cambiar
   if (BT.canSwap) {
+    const alive = G.team.filter((m) => m.hp > 0 && m !== p).length;
     const sw = document.createElement("button");
     sw.type = "button";
     sw.className = "bbtn secondary";
-    sw.innerHTML = "🔄 CAMBIAR";
+    sw.innerHTML = `<span>🔄 CAMBIAR</span><span class="sub">vivos: ${alive}</span>`;
+    sw.disabled = alive < 1;
     sw.onclick = () => openSwapBattle(false);
     ba.appendChild(sw);
   }
+
+  // Pokeball
   if (BT.canCatch) {
     const bl = document.createElement("button");
     bl.type = "button";
-    bl.className = "bbtn";
-    bl.style.background = "var(--red)";
-    bl.style.color = "#fff";
-    bl.innerHTML = "🔴 POKEBALL";
+    bl.className = "bbtn danger";
+    bl.innerHTML = `<span>🔴 POKEBALL</span><span class="sub">×${G.items.ball} · debilítalo</span>`;
     bl.onclick = () => throwBall();
     ba.appendChild(bl);
   }
+
+  // Huir
   if (BT.canRun) {
     const rn = document.createElement("button");
     rn.type = "button";
     rn.className = "bbtn danger";
-    rn.innerHTML = "🏃 HUIR";
+    rn.innerHTML = `<span>🏃 HUIR</span><span class="sub">escapás</span>`;
     rn.onclick = () => doRun();
     ba.appendChild(rn);
   }
