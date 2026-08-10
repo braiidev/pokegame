@@ -5,26 +5,6 @@
    ============================================================ */
 "use strict";
 
-/* ===== LOCALSTORAGE ===== */
-const lsGet = (k, d) => {
-  try {
-    const v = localStorage.getItem(k);
-    return v === null ? d : v;
-  } catch (e) {
-    return d;
-  }
-};
-const lsSet = (k, v) => {
-  try {
-    localStorage.setItem(k, v);
-  } catch (e) {}
-};
-const lsDel = (k) => {
-  try {
-    localStorage.removeItem(k);
-  } catch (e) {}
-};
-
 /* ===== CONSTANTES GLOBALES ===== */
 const STAT_CAP = 100; // máximo de puntos por stat
 const CD_MAX = 4; // cargas máximas de un ataque especial
